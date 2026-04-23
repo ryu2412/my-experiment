@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心理学実験室</title>
+    <style>
+        /* 1. 背景は薄いグレー */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0; /* 薄いグレー */
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        /* 2. 画面中央に大きな文字 */
+        h1 {
+            font-size: 3rem;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        /* 3. 『実験を開始する』という青いボタン */
+        .start-button {
+            background-color: #007bff; /* 青色 */
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .start-button:hover {
+            background-color: #0056b3; /* ホバー時に少し濃い青 */
+        }
+
+        /* カスタムアラート（alert()の代わり） */
+        #custom-alert {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 1000;
+            text-align: center;
+        }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .close-btn {
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>心理学実験室へようこそ</h1>
+        <button class="start-button" id="startBtn">実験を開始する</button>
+    </div>
+
+    <!-- カスタムアラートのUI -->
+    <div id="overlay"></div>
+    <div id="custom-alert">
+        <p id="alert-message" style="font-size: 1.2rem; font-weight: bold;"></p>
+        <button class="close-btn" onclick="closeAlert()">閉じる</button>
+    </div>
+
+    <script>
+        // 4. ボタンを押すとメッセージを表示
+        const startBtn = document.getElementById('startBtn');
+        const overlay = document.getElementById('overlay');
+        const customAlert = document.getElementById('custom-alert');
+        const alertMessage = document.getElementById('alert-message');
+
+        startBtn.addEventListener('click', () => {
+            showAlert('Hello World!');
+        });
+
+        function showAlert(msg) {
+            alertMessage.textContent = msg;
+            overlay.style.display = 'block';
+            customAlert.style.display = 'block';
+        }
+
+        function closeAlert() {
+            overlay.style.display = 'none';
+            customAlert.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
