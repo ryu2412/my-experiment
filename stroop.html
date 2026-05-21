@@ -7,7 +7,7 @@
     <!-- jsPsych 7.3系のコアライブラリと必要なプラグインをCDNから読み込みます -->
     <script src="https://unpkg.com/jspsych@7.3.0"></script>
     <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
-    <!-- 全画面プラグインの読み込みを削除または維持（今回はエラー回避のため使用しません） -->
+    <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.2"></script>
     <link rel="stylesheet" href="https://unpkg.com/jspsych@7.3.0/css/jspsych.css">
     
     <style>
@@ -38,16 +38,54 @@
         .fixation {
             font-size: 60px;
         }
+
+        /* ステータスメッセージのスタイル */
+        .status-message {
+            font-size: 20px;
+            line-height: 1.8;
+            margin: 50px auto;
+            max-width: 650px;
+            text-align: center;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0,0,0,0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert-box {
+            background-color: #FFF3CD;
+            border: 1px solid #FFEBAA;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: left;
+            font-size: 14px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
     <div id="jspsych-target"></div>
 
     <script>
+        // Google Apps ScriptのウェブアプリURLを設定してください。
+        const gasUrl = "https://script.google.com/macros/s/AKfycbxPQ3JrWGrmM6qtAPQ0gsHTmh5TQxPZHsbWb4G9dwpFKQPciSq4bamoqxbNqEWLMeUv/exec";
+
         const jsPsych = initJsPsych({
             on_finish: function() {
-                // 実験終了時にCSV形式でデータを表示
-                jsPsych.data.displayData('csv');
+                // 実験終了時に必要なデータのみ抽出し、CSV化して自動送信
+                sendDataWithRetry();
             }
         });
 
@@ -72,6 +110,8 @@
                 stimuli.push({
                     stimulus_text: w.text,
                     stimulus_color: c.hex,
+                    word_name: w.text,
+                    color_name: c.name,
                     correct_key: c.key,
                     condition: (w.color_name === c.name) ? "congruent" : "incongruent"
                 });
@@ -80,10 +120,26 @@
 
         const timeline = [];
 
-        // エラーの原因となる全画面化（jsPsychFullscreen）をタイムラインから除外します。
-        // 代わりに、開始を確認する画面を最初に入れます。
+        // (1) 参加者情報入力画面 (survey-textプラグイン)
+        const participant_info = {
+            type: jsPsychSurveyText,
+            questions: [
+                { prompt: '参加者ID（例：学籍番号）を入力してください：', name: 'ParticipantID', required: true }
+            ],
+            button_label: '次へ',
+            on_finish: function(data) {
+                const id = data.response.ParticipantID;
+                const timestamp = new Date().toISOString();
+                // 以降のすべての試行データにIDと実施日時を自動付与
+                jsPsych.data.addProperties({
+                    subject_id: id,
+                    timestamp: timestamp
+                });
+            }
+        };
+        timeline.push(participant_info);
 
-        // (1) 教示画面（開始画面）
+        // (2) 教示画面（開始画面）
         const instructions = {
             type: jsPsychHtmlKeyboardResponse,
             stimulus: `
@@ -103,7 +159,7 @@
 
         // (3) メイン試行ループの定義
         
-        // 注視点
+        // 注視点 (500ms)
         const fixation = {
             type: jsPsychHtmlKeyboardResponse,
             stimulus: '<div class="fixation">+</div>',
@@ -122,16 +178,19 @@
             choices: ['r', 'g', 'b'],
             data: {
                 task: 'response',
+                word: jsPsych.timelineVariable('word_name'),
+                color: jsPsych.timelineVariable('color_name'),
                 correct_response: jsPsych.timelineVariable('correct_key'),
                 condition: jsPsych.timelineVariable('condition')
             },
             on_finish: function(data) {
-                // 正誤判定
-                data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+                // 正誤判定を厳密に true / false の「文字列」として記録（空欄になるのを防止）
+                const isCorrect = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+                data.correct = isCorrect ? "true" : "false";
             }
         };
 
-        // 試行間隔 (ITI)
+        // 試行間隔 (ITI 1000ms)
         const iti = {
             type: jsPsychHtmlKeyboardResponse,
             stimulus: '',
@@ -149,6 +208,118 @@
             }
         };
         timeline.push(test_procedure);
+
+        // データの抽出、CSV文字列への整形、および指数バックオフ送信を行うメイン処理
+        async function sendDataWithRetry() {
+            const display_element = jsPsych.getDisplayElement();
+            
+            // 安全に進行中メッセージを表示（jsPsych終了時のDOMエラーを回避）
+            display_element.innerHTML = `
+                <div class="status-message">
+                    <p>実験が終了しました。データを送信しています...</p>
+                    <div class="spinner"></div>
+                </div>
+            `;
+
+            // 1. 不要な行を除外し、反応試行のみを抽出
+            const rawData = jsPsych.data.get().filter({ task: 'response' }).values();
+
+            // 2. CSVフォーマットに変換
+            // ヘッダー列の定義
+            const headers = ["subject_id", "timestamp", "word", "color", "condition", "rt", "correct"];
+            const csvRows = [headers.join(",")];
+
+            // データの各行をパースしてCSV行を構築
+            rawData.forEach(trial => {
+                const row = [
+                    `"${(trial.subject_id || "").replace(/"/g, '""')}"`,
+                    `"${trial.timestamp || ""}"`,
+                    `"${trial.word || ""}"`,
+                    `"${trial.color || ""}"`,
+                    `"${trial.condition || ""}"`,
+                    trial.rt,
+                    `"${trial.correct || "false"}"`
+                ];
+                csvRows.push(row.join(","));
+            });
+
+            // 改行コードで結合してCSV文字列を完成
+            const csvString = csvRows.join("\n");
+
+            // URL検証ガードレール（スプレッドシート通常URLのまま送信しようとした場合、手動コピペ画面へ安全にフォールバック）
+            if (!gasUrl || !gasUrl.includes("/exec")) {
+                console.warn("警告: 送信先URLがGoogle Apps ScriptのウェブアプリURLではありません。手動コピペ画面に移行します。");
+                showFailureMessage(display_element, csvString, "URL未設定エラー: コード内の 'gasUrl' がスプレッドシートの通常URL（/edit...）のままになっているか、未設定です。データを自動保存するには、GASをデプロイして得られる『/exec』で終わるウェブアプリURLに差し替えてください。");
+                return;
+            }
+
+            const maxRetries = 5;
+            let attempt = 0;
+
+            async function attemptSend() {
+                try {
+                    // CORSエラーによるスクリプト中断を防ぎ、確実に届けるために mode: 'no-cors' で送信
+                    // no-corsで弾かれないように、ヘッダーをブラウザ標準の 'text/plain' に設定
+                    const response = await fetch(gasUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        },
+                        body: csvString
+                    });
+                    
+                    // no-corsモード時はレスポンスのステータスを取得できませんが、fetchが例外を投げずに完了すれば成功とみなします
+                    showSuccessMessage(display_element);
+                } catch (error) {
+                    attempt++;
+                    if (attempt < maxRetries) {
+                        const delay = Math.pow(2, attempt) * 1000; // 指数バックオフ: 2s, 4s, 8s, 16s...
+                        display_element.innerHTML = `
+                            <div class="status-message">
+                                <p>データ送信中に一時的なエラーが発生しました。再試行中 (${attempt}/${maxRetries - 1})...</p>
+                                <p style="font-size: 14px; color: #666;">次の試行まで ${delay / 1000} 秒待ちます</p>
+                                <div class="spinner"></div>
+                            </div>
+                        `;
+                        setTimeout(attemptSend, delay);
+                    } else {
+                        // 完全に送信できなかった場合、データを画面に表示しコピーを促す
+                        showFailureMessage(display_element, csvString, error.toString());
+                    }
+                }
+            }
+
+            await attemptSend();
+        }
+
+        // 送信成功時のメッセージ表示
+        function showSuccessMessage(element) {
+            element.innerHTML = `
+                <div class="status-message" style="color: #2e7d32;">
+                    <h2>送信が完了しました</h2>
+                    <p>実験へのご協力ありがとうございました。このブラウザを閉じても構いません。</p>
+                </div>
+            `;
+        }
+
+        // 送信完全失敗時または事前警告時の代替表示
+        function showFailureMessage(element, csvPayload, errorMessage) {
+            element.innerHTML = `
+                <div class="status-message" style="color: #c62828; text-align: left;">
+                    <h2>データの自動保存ができませんでした</h2>
+                    <p>ネットワークエラーまたは送信先設定の不備（CORS/URLエラーなど）のため、スプレッドシートに保存できませんでした。</p>
+                    
+                    <div class="alert-box">
+                        <strong>技術的な原因:</strong> ${errorMessage}
+                    </div>
+
+                    <p style="margin-top: 20px;">お手数ですが、以下のテキストボックスの内容を<strong>すべてコピー（Ctrl + A してからコピー）</strong>し、実験担当者へメール等でお送りください。</p>
+                    <textarea readonly style="width: 100%; height: 180px; font-family: monospace; font-size: 12px; margin-top: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" onclick="this.select()">${csvPayload}</textarea>
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">※クリックすると全選択されます。コピーしてそのままスプレッドシート等に貼り付け可能なデータ形式になっています。</p>
+                </div>
+            `;
+        }
 
         jsPsych.run(timeline);
 
