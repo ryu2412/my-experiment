@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>尚絅学院大学 海川瑠輝の心理学実験室</title>
+    <!-- Google Fonts: Inter & Noto Sans JP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+JP:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* デザインシステム・変数定義 */
+        :root {
+            --color-bg: #0b0f19;         /* 深い漆黒 */
+            --color-surface: #161f30;    /* カードやヘッダーの背景 */
+            --color-surface-hover: #1e293b;
+            --color-primary: #00d2ff;    /* スカイブルー（メイン） */
+            --color-primary-glow: rgba(0, 210, 255, 0.15);
+            --color-text-main: #f8fafc;   /* メインテキスト */
+            --color-text-muted: #94a3b8;  /* サブテキスト */
+            --font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* リセット・ベーススタイル */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text-main);
+            font-family: var(--font-family);
+            line-height: 1.7;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* 装飾的な背景グラデーション（安心感を与える柔らかな光） */
+        .bg-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 210, 255, 0.08) 0%, rgba(11, 15, 25, 0) 70%);
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* コンテナ */
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            flex: 1;
+        }
+
+        /* ヘッダーセクション */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .logo-area {
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--color-primary);
+            filter: drop-shadow(0 0 8px var(--color-primary-glow));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            line-height: 1.3;
+            background: linear-gradient(135deg, #ffffff 0%, var(--color-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-box {
+            background: var(--color-surface);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px 32px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            max-width: 760px;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .welcome-text {
+            color: var(--color-text-muted);
+            font-size: 1.05rem;
+            font-weight: 300;
+        }
+
+        /* スマートフォン誘導バッジ */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--color-primary-glow);
+            color: var(--color-primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 12px;
+            border: 1px solid rgba(0, 210, 255, 0.2);
+        }
+
+        /* 実験リスト・グリッドレイアウト */
+        .experiment-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        @media (min-width: 768px) {
+            .experiment-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            h1 {
+                font-size: 2.8rem;
+            }
+        }
+
+        /* 実験カード */
+        .card {
+            background: var(--color-surface);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ホバーエフェクト */
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 210, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 210, 255, 0.1);
+            background-color: var(--color-surface-hover);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+            transform: scaleX(0);
+            transition: var(--transition);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-header {
+            margin-bottom: 24px;
+        }
+
+        .card-num {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--color-text-main);
+        }
+
+        .card-desc {
+            font-size: 0.95rem;
+            color: var(--color-text-muted);
+            line-height: 1.6;
+        }
+
+        /* 補足情報 (所要時間など) */
+        .meta-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--color-primary);
+            margin-top: 12px;
+            font-weight: 500;
+        }
+
+        /* カードアクション（ボタン） */
+        .card-action {
+            margin-top: 32px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+        }
+
+        /* ボタンのスタイル */
+        .btn-primary {
+            background: var(--color-primary);
+            color: #000000;
+            box-shadow: 0 4px 14px rgba(0, 210, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #ffffff;
+            color: #000000;
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+        }
+
+        /* フッター */
+        footer {
+            text-align: center;
+            padding: 40px 24px;
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+        }
+
+        footer p {
+            margin-bottom: 8px;
+        }
+
+        footer a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 背景装飾用の光 -->
+    <div class="bg-glow"></div>
+
+    <div class="container">
+        <!-- ヘッダーエリア -->
+        <header>
+            <div class="logo-area">
+                <i class="fa-solid fa-brain logo-icon"></i>
+            </div>
+            <h1>尚絅学院大学 海川瑠輝の心理学実験室</h1>
+            
+            <div class="welcome-box">
+                <p class="welcome-text">
+                    ご訪問ありがとうございます。以下の実験へのご協力をお願いいたします。<br>
+                    各実験は数分で終わります。スマートフォンからも参加可能です。
+                </p>
+                <div class="badge">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                    <span>スマホ対応</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ：実験カードグリッド -->
+        <main class="experiment-grid">
+            
+            <!-- 実験 0 -->
+            <article class="card">
+                <div class="card-header">
+                    <span class="card-num">Experiment 00</span>
+                    <h2 class="card-title">はじめてのWebページ</h2>
+                    <p class="card-desc">第2回で作成した記念すべき「Hello World」のページです。すべての始まりとなったシンプルなWebページをご覧いただけます。</p>
+                </div>
+                <div class="card-action">
+                    <a href="hello_world.html" class="btn btn-primary">
+                        <span>Hello Worldを見る</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </article>
+
+            <!-- 実験 1 -->
+            <article class="card">
+                <div class="card-header">
+                    <span class="card-num">Experiment 01</span>
+                    <h2 class="card-title">ストループ課題</h2>
+                    <p class="card-desc">「文字の意味」と「文字の色」の干渉を調べる、簡単なキーボード入力のテストです。脳の認知制御機能を測定します。</p>
+                    <div class="meta-info">
+                        <i class="fa-regular fa-clock"></i>
+                        <span>所要時間：約3分</span>
+                    </div>
+                </div>
+                <div class="card-action">
+                    <a href="stroop.html" class="btn btn-primary">
+                        <span>実験1に参加する</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </article>
+
+            <!-- 実験 2 -->
+            <article class="card">
+                <div class="card-header">
+                    <span class="card-num">Experiment 02</span>
+                    <h2 class="card-title">ミュラー・リヤー錯視</h2>
+                    <p class="card-desc">矢印の向きによって図形の長さが違って見える錯覚を測る、スライダーを使った視覚のテストです。視覚の不思議を体験できます。</p>
+                    <div class="meta-info">
+                        <i class="fa-regular fa-clock"></i>
+                        <span>所要時間：約2分</span>
+                    </div>
+                </div>
+                <div class="card-action">
+                    <a href="muller_lyer_final.html" class="btn btn-primary">
+                        <span>実験2に参加する</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </article>
+
+        </main>
+    </div>
+
+    <!-- フッター -->
+    <footer>
+        <p>&copy; 2026 Shokei Gakuin University. Ruki Kaikawa All Rights Reserved.</p>
+        <p>心理学実験についてのご質問等は研究室までお問い合わせください。</p>
+    </footer>
+
+</body>
+</html>
