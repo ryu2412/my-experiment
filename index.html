@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>尚絅学院大学 海川瑠輝の心理学実験室</title>
-    <!-- Google Fonts: Space Mono (HIPHOP/TECH) & Syne & Noto Sans JP -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -346,12 +344,15 @@
             color: var(--color-neon-purple);
         }
 
-        /* カードアクション（ボタン） */
+        /* カードアクション（ボタンコンテナ） */
         .card-action {
             margin-top: 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* ボタン同士の隙間を設定 */
         }
 
-        /* タクティカル（実用的・軍事的）な重厚ボタン */
+        /* タクティカル（実用的・軍実に）な重厚ボタンのベーススタール */
         .btn {
             display: flex;
             align-items: center;
@@ -365,21 +366,52 @@
             text-decoration: none;
             transition: var(--transition);
             cursor: pointer;
-            border: 2px solid var(--color-acid);
-            background: transparent;
-            color: var(--color-acid);
             font-family: var(--font-family-tech);
             position: relative;
             overflow: hidden;
+            box-sizing: border-box;
         }
 
-        /* ホバーで色が反転して光るギミック */
-        .btn:hover {
+        /* 1. 実験開始：メインボタン（アシッドグリーン） */
+        .btn-primary {
+            border: 2px solid var(--color-acid);
+            background: transparent;
+            color: var(--color-acid);
+        }
+        .btn-primary:hover {
             background: var(--grad-rainbow);
             color: #000000;
             border-color: transparent;
             box-shadow: 0 0 20px rgba(204, 255, 0, 0.4);
-            font-weight: 900;
+        }
+
+        /* 2. プレレジ：サブボタン（ネオンバイオレット） */
+        .btn-secondary {
+            border: 2px solid var(--color-neon-purple);
+            background: transparent;
+            color: var(--color-neon-purple);
+            font-size: 0.85rem;
+            padding: 12px 20px;
+        }
+        .btn-secondary:hover {
+            background: var(--color-neon-purple);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(157, 0, 255, 0.5);
+        }
+
+        /* 3. 変更履歴：控えめなミニマムボタン（テックグレー） */
+        .btn-evidence {
+            border: 1px dashed var(--color-text-muted);
+            background: transparent;
+            color: var(--color-text-muted);
+            font-size: 0.75rem;
+            padding: 10px 16px;
+        }
+        .btn-evidence:hover {
+            border-style: solid;
+            border-color: #cbd5e1;
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.03);
         }
 
         /* フッター */
@@ -405,16 +437,13 @@
 </head>
 <body>
 
-    <!-- 四隅のテッククロス（デコレーション） -->
     <div class="tech-cross tc-tl">+ SYS_ACTIVE</div>
     <div class="tech-cross tc-tr">CORP_2026 //</div>
 
-    <!-- 背景装飾用のグラデーション光 -->
     <div class="bg-glow-left"></div>
     <div class="bg-glow-right"></div>
 
     <div class="container">
-        <!-- ヘッダーエリア -->
         <header>
             <div class="logo-area">
                 <i class="fa-solid fa-radiation logo-icon"></i>
@@ -437,10 +466,8 @@
             </div>
         </header>
 
-        <!-- メインコンテンツ：実験カードグリッド -->
         <main class="experiment-grid">
             
-            <!-- 実験 0 -->
             <article class="card">
                 <div class="card-tech-id">
                     <span>PHASE_00</span>
@@ -458,7 +485,6 @@
                 </div>
             </article>
 
-            <!-- 実験 1 -->
             <article class="card">
                 <div class="card-tech-id">
                     <span>PHASE_01</span>
@@ -480,7 +506,6 @@
                 </div>
             </article>
 
-            <!-- 実験 2 -->
             <article class="card">
                 <div class="card-tech-id">
                     <span>PHASE_02</span>
@@ -499,13 +524,22 @@
                         <span>実験2に参加する</span>
                         <i class="fa-solid fa-sliders"></i>
                     </a>
+                    
+                    <a href="https://github.com/ryu2412/my-experiment/blob/main/preregistration.md" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                        <span>プレレジを確認する</span>
+                        <i class="fa-solid fa-file-shield"></i>
+                    </a>
+                    
+                    <a href="https://github.com/ryu2412/my-experiment/commits/main/preregistration.md" target="_blank" rel="noopener noreferrer" class="btn btn-evidence">
+                        <span>変更履歴（証拠）を確認する</span>
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </a>
                 </div>
             </article>
 
         </main>
     </div>
 
-    <!-- フッター -->
     <footer>
         <p>&copy; 2026 Shokei Gakuin University. <strong>Ruki Kaikawa</strong> All Rights Reserved.</p>
         <p>COGNITIVE NEUROSCIENCE RESEARCH LAB // BEAT & COGNITION</p>
